@@ -1,7 +1,10 @@
 package rotator
 
 import (
+	"fmt"
+	"io/ioutil"
 	"os"
+	"path"
 	"sync"
 	"time"
 )
@@ -17,6 +20,7 @@ type DailyRotator struct {
 	file        *os.File
 	Now         time.Time
 	mutex       sync.Mutex
+	MaxRotate   int
 }
 
 // Write binaries to the file.
@@ -90,6 +94,8 @@ func (r *DailyRotator) Write(bytes []byte) (n int, err error) {
 		}
 	}
 
+	removeAsync(r.file, r.currentDate, r.MaxRotate)
+
 	// Reset now
 	if r.Now.Unix() > 0 {
 		r.Now = time.Time{}
@@ -112,4 +118,21 @@ func (r *DailyRotator) Close() error {
 // NewDailyRotator creates rotator which writes to the file
 func NewDailyRotator(path string) *DailyRotator {
 	return &DailyRotator{path: path}
+}
+
+func removeAsync(file *os.File, currentDate string, maxRotate int) {
+	if maxRotate == 0 {
+		return
+	}
+	dirName, _ := path.Split(file.Name())
+	fileInfos, err := ioutil.ReadDir(dirName)
+	if err != nil {
+		return
+	}
+
+	for _, fileInfo := range fileInfos {
+		_, f := path.Split(fileInfo.Name())
+		fmt.Println(f)
+	}
+
 }

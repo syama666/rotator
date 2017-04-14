@@ -1,14 +1,15 @@
 package rotator
 
 import (
-	"github.com/stretchr/testify/assert"
+	"fmt"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestRotationNormalOutput(t *testing.T) {
-
 	path := "test_daily.log"
 
 	stat, _ := os.Lstat(path)
@@ -43,6 +44,7 @@ func TestRotationNormalOutput(t *testing.T) {
 
 func TestDailyRotationOnce(t *testing.T) {
 
+	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	path := "test_daily.log"
 
 	stat, _ := os.Lstat(path)
@@ -66,8 +68,8 @@ func TestDailyRotationOnce(t *testing.T) {
 
 	assert.NotNil(t, stat)
 
-	os.Remove(path)
-	os.Remove(path + "." + now.Format(dateFormat))
+	//os.Remove(path)
+	//os.Remove(path + "." + now.Format(dateFormat))
 }
 
 func TestDailyRotationAtOpen(t *testing.T) {
