@@ -1,7 +1,6 @@
 package rotator
 
 import (
-	"fmt"
 	"os"
 	"testing"
 	"time"
@@ -44,7 +43,6 @@ func TestRotationNormalOutput(t *testing.T) {
 
 func TestDailyRotationOnce(t *testing.T) {
 
-	fmt.Println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 	path := "test_daily.log"
 
 	stat, _ := os.Lstat(path)
@@ -68,8 +66,8 @@ func TestDailyRotationOnce(t *testing.T) {
 
 	assert.NotNil(t, stat)
 
-	//os.Remove(path)
-	//os.Remove(path + "." + now.Format(dateFormat))
+	os.Remove(path)
+	os.Remove(path + "." + now.Format(dateFormat))
 }
 
 func TestDailyRotationAtOpen(t *testing.T) {
@@ -91,13 +89,12 @@ func TestDailyRotationAtOpen(t *testing.T) {
 	rotator = NewDailyRotator(path)
 	defer rotator.Close()
 
-	rotator.Now = time.Unix(now.Unix()+86400, 0)
+	rotator.Now = time.Unix(now.Unix()+86400*2, 0)
 	rotator.WriteString("NEXT LOG")
 
 	stat, _ = os.Lstat(path + "." + now.Format(dateFormat))
 
 	assert.NotNil(t, stat)
-
 	os.Remove(path)
 	os.Remove(path + "." + now.Format(dateFormat))
 }
@@ -132,4 +129,34 @@ func TestDailyRotationError(t *testing.T) {
 	os.Remove(path)
 	os.Remove(path + "." + now.Format(dateFormat))
 
+}
+
+func TestDailyRotationRemove(t *testing.T) {
+
+	path := "test_daily.log"
+
+	stat, _ := os.Lstat(path)
+	if stat != nil {
+		os.Remove(path)
+	}
+
+	rotator := NewDailyRotator(path)
+	rotator.MaxRotate = 1
+	rotator.WriteString("FIRST LOG")
+	rotator.Close()
+
+	now := time.Now()
+
+	// simulate next day
+	rotator = NewDailyRotator(path)
+	defer rotator.Close()
+
+	rotator.Now = time.Unix(now.Unix()+86400*2, 0)
+	rotator.WriteString("NEXT LOG")
+
+	stat, _ = os.Lstat(path + "." + now.Format(dateFormat))
+
+	assert.Nil(t, stat)
+	//os.Remove(path)
+	//os.Remove(path + "." + now.Format(dateFormat))
 }

@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 )
@@ -94,7 +96,7 @@ func (r *DailyRotator) Write(bytes []byte) (n int, err error) {
 		}
 	}
 
-	removeAsync(r.file, r.currentDate, r.MaxRotate)
+	removeAsync(r.file.Name(), r.currentDate, r.MaxRotate)
 
 	// Reset now
 	if r.Now.Unix() > 0 {
@@ -120,11 +122,20 @@ func NewDailyRotator(path string) *DailyRotator {
 	return &DailyRotator{path: path}
 }
 
-func removeAsync(file *os.File, currentDate string, maxRotate int) {
+func removeAsync(fileName string, currentDate string, maxRotate int) {
 	if maxRotate == 0 {
 		return
 	}
-	dirName, _ := path.Split(file.Name())
+
+	fileNameOrigin := fileName
+
+	if file, err := filepath.Abs(fileName); err == nil {
+		fileName = file
+	} else {
+		return
+	}
+	fmt.Println(fileName)
+	dirName, _ := path.Split(fileName)
 	fileInfos, err := ioutil.ReadDir(dirName)
 	if err != nil {
 		return
@@ -132,6 +143,9 @@ func removeAsync(file *os.File, currentDate string, maxRotate int) {
 
 	for _, fileInfo := range fileInfos {
 		_, f := path.Split(fileInfo.Name())
+		if !strings.Contains(f, fileNameOrigin) {
+			continue
+		}
 		fmt.Println(f)
 	}
 
